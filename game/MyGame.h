@@ -12,6 +12,8 @@ class CMyGame : public CGame
 	
 	// Whose Turn
 	int m_turn;					// 0 = left cannon, 1 = right cannon
+	int m_score[2];				// score tracker for left cannon + right cannon
+	int m_life[2];				// life count for left cannon + right cannon
 
 	// Game Mode
 	enum { MODE_AIM, MODE_SHOOT, MODE_GAMEOVER } m_mode;

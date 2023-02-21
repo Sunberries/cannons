@@ -10,6 +10,9 @@ CMyGame::CMyGame()
 	m_cannons[1] = NULL;
 	m_turn = 0;
 	m_mode = MODE_AIM;
+
+	m_life[0] = 3;
+	m_life[1] = 3; 
 }
 
 CMyGame::~CMyGame()
@@ -27,15 +30,45 @@ void CMyGame::OnUpdate()
 		// this code will only be executed while shooting
 
 		// TODO: 1. Add the gravitation
+		CVector g(0, -6);
+		m_ball.Accelerate(g);
 
-		// TODO: 2. Check if cannon hit? game over? 
+		// TODO: 2. Check if cannon hit? game over?
+		if (m_cannons[1-m_turn]->HitTest(&m_ball))
+		{
+			m_life[1 - m_turn]--;
+			m_score[m_turn] += 1000;
+			NextTurn();	
+		}
+
+		if (m_life[0] <= 0 || m_life[1] <= 0)
+		{
+			GameOver();
+		}
 
 		// TODO: 3. Check if the ball is outside the screen. Test the following cases:
 		// - ball to the left of the screen
 		// - ball to the right of the screen (screen width = 800)
 		// - ball below the screen
+
+		if (m_ball.GetX() <= 0 || m_ball.GetX() >= 800 || m_ball.GetY() <= 0)
+		{
+			NextTurn();
+		}
 			
 		// TODO: 4. Check if the ball hit the castle?
+		for (CSprite* pSprite : m_castle)
+		{
+			
+			if (m_ball.HitTest(pSprite))
+			{
+				pSprite->Delete();
+				m_score[m_turn] += 100;
+				NextTurn();
+			}
+		}
+
+		m_castle.delete_if(deleted);
 
 	}
 	
@@ -59,6 +92,12 @@ void CMyGame::OnDraw(CGraphics* g)
 	// Draw the cannons
 	m_cannons[0]->Draw(g);
 	m_cannons[1]->Draw(g);
+
+	*g << top << left << "Score: " << m_score[0];
+	*g << top << right << "Score: " << m_score[1];
+	*g << vcentre << left <<  "Life: " << m_life[0];
+	*g << vcenter << right <<  "Life: " << m_life[1];
+
 
 	// Text
 	if (IsGameOver())
@@ -161,7 +200,7 @@ void CMyGame::OnStartGame()
 	m_cannons[1]->SetRotation(0);
 
 	// initialise the turn and aiming mode
-	m_turn = rand() % 2;
+	m_turn = 1 - m_turn;
 	m_mode = MODE_AIM;
 
 	// dismantle the old castle
@@ -189,7 +228,7 @@ void CMyGame::OnStartGame()
 // called when Game is Over
 void CMyGame::OnGameOver()
 {
-	m_cannons[1 - m_turn]->SetImage("fire");
+	m_cannons[m_turn]->SetImage("fire"); //since hitting cannons triggers next turn, the cannon that needs the fire on game over is the current turn cannon
 	m_mode = MODE_GAMEOVER;
 }
 
